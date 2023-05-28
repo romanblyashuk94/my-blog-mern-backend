@@ -1,4 +1,5 @@
 import Post from '../models/Post.js';
+import Comment from '../models/Comment.js';
 import User from '../models/User.js';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url'
@@ -81,7 +82,7 @@ export const getMyPosts = async (req, res) => {
       user.posts.map(post => Post.findById(post._id))
     );
 
-    res.send(userPosts.sort((a, b) => b.updatedAt - a.updatedAt));
+    res.send(userPosts.reverse());
   } catch (error) {
     console.log(error)
     return res.send({ message: 'Can\'t load  user post' })
@@ -135,5 +136,27 @@ export const updatePost = async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.send({ message: 'Can\'t update post' })
+  }
+}
+
+// Get post comments
+export const getPostComments = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    const comments = await Promise.all(post.comments.map(commentId => (
+      Comment.findById(commentId).then(async (comment) => {
+        const author = await User.findById(comment?.author);
+        comment.author = author;
+        return comment;
+      })
+    )));
+    return res.send(comments);
+  } catch (error) {
+    console.log(error);
+
+    res.send({
+      message: 'Can\'t load post comments',
+    })
   }
 }
