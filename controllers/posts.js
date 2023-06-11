@@ -113,23 +113,23 @@ export const removePost = async (req, res) => {
 // Update post
 export const updatePost = async (req, res) => {
   try {
-    console.log('HERE1', req.params);
     const post = await Post.findById(req.params.id);
-    console.log('HERE2', post);
     if (!post) {
       return res.send({ message: 'Post doesn\'t exist' });
     }
 
     const { title, text } = req.body;
+    let fileName = '';
 
     if (req.files) {
       const __dirname = dirname(fileURLToPath(import.meta.url));
-      post.imageUrl = Date.now().toString() + req.files.image.name;
+      fileName = Date.now().toString() + req.files.image.name;
       req.files.image.mv(path.join(__dirname, '..', 'uploads', fileName))
     }
 
     post.title = title;
     post.text = text;
+    post.imageUrl = fileName;
 
     await post.save()
 
